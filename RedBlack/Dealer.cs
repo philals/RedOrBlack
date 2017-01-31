@@ -3,8 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Amazon.Runtime;
-using Amazon.Runtime.Internal.Util;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Newtonsoft.Json;
@@ -59,25 +57,23 @@ namespace RedBlack
                 var drawCardResponse = JsonConvert.DeserializeObject<DrawCardResponse>(content);
 
                 var card = drawCardResponse.cards.First();
-                var cardString = $"{card.value} of {card.suit.ToLower()}";
-
-                Messenger.SendMessage(playerId, cardString).Wait();
+                Messenger.SendImage(playerId, card.image).Wait();
                 
                 if (assumption.ToLower() == "red" &&
                     (card.suit.ToLower() == "diamonds" || card.suit.ToLower() == "hearts"))
                 {
-                    var message = $"Nice one. \nScore: {++currentGame.score}";
+                    var message = $"Nice one. \nYour score is {++currentGame.score} with {drawCardResponse.remaining} cards left.";
                     Messenger.SendMessage(playerId, message).Wait();
                 }
                 else if (assumption.ToLower() == "black" &&
                          (card.suit.ToLower() == "spades" || card.suit.ToLower() == "clubs"))
                 {
-                    var message = $"Nice one. \nScore: {++currentGame.score}";
+                    var message = $"Nice one. \nYour score is {++currentGame.score} with {drawCardResponse.remaining} cards left.";
                     Messenger.SendMessage(playerId, message).Wait();
                 }
                 else
                 {
-                    var message = $"Nope. \nScore: {currentGame.score}";
+                    var message = $"Nope. \nYour score is {currentGame.score} with {drawCardResponse.remaining} cards left.";
                     Messenger.SendMessage(playerId, message).Wait();
                 }
 

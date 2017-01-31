@@ -9,6 +9,20 @@ namespace RedBlack
 {
     public class Messenger
     {
+        public static async Task SendImage(string recipientId, string imageUrl)
+        {
+            var outboundRequest = new OutboundRequest
+            {
+                recipient = new Recipient { id = recipientId },
+                message = new OutboundMessage { attachment = new Attachment
+                {
+                    payload = new Payload {url = imageUrl}, type = "image"}
+                }
+            };
+
+            await Send(outboundRequest);
+        }
+
         public static async Task SendMessage(string recipientId, string messageText)
         {
             var outboundRequest = new OutboundRequest
@@ -17,6 +31,11 @@ namespace RedBlack
                 message = new OutboundMessage {text = messageText}
             };
 
+            await Send(outboundRequest);
+        }
+
+        private static async Task Send(OutboundRequest outboundRequest)
+        {
             using (var client = new HttpClient())
             {
                 var str = JsonConvert.SerializeObject(outboundRequest);
@@ -27,7 +46,7 @@ namespace RedBlack
                 Console.WriteLine("pageToken: " + pageToken);
 
                 var url = "https://graph.facebook.com/v2.6/me/messages?access_token=" + pageToken;
-                
+
                 try
                 {
                     var response = await client.PostAsync(url, content);
