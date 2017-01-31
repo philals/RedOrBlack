@@ -9,8 +9,14 @@ namespace RedBlack
 {
     public class Messenger
     {
-        public static async Task SendMessage(OutboundRequest outboundRequest)
+        public static async Task SendMessage(string recipientId, string messageText)
         {
+            var outboundRequest = new OutboundRequest
+            {
+                recipient = new Recipient {id = recipientId},
+                message = new OutboundMessage {text = messageText}
+            };
+
             using (var client = new HttpClient())
             {
                 var str = JsonConvert.SerializeObject(outboundRequest);

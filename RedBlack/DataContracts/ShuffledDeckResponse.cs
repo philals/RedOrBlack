@@ -1,6 +1,6 @@
-﻿namespace RedBlack
+﻿namespace RedBlack.DataContracts
 {
-    public class ShuffledCardsResponse
+    public class ShuffledDeckResponse
     {
         public bool success { get; set; }
         public string deck_id{ get; set; }

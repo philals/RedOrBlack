@@ -37,10 +37,19 @@ namespace RedBlack
 
         private void HandleIncomingMessage(string recipientId, string messageText)
         {
-            if (messageText.ToLower().StartsWith("start game"))
+            var text = messageText.ToLower();
+            var dealer = new Dealer();
+            if (text.StartsWith("start game"))
             {
-                var dealer = new Dealer();
                 dealer.StartGame(recipientId).Wait();
+            }
+            else if (text.StartsWith("red") || text.StartsWith("black"))
+            {
+                dealer.TakeTurn(recipientId, text).Wait();
+            }
+            else
+            {
+                Messenger.SendMessage(recipientId, "Huh? I'm just here to deal the cards").Wait();
             }
         }
     }

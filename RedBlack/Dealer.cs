@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Amazon.Runtime;
@@ -22,7 +24,7 @@ namespace RedBlack
             {
                 var response = await client.GetAsync($"{_baseUrl}/{endpoint}");
                 var content = await response.Content.ReadAsStringAsync();
-                var shuffledResponse = JsonConvert.DeserializeObject<ShuffledCardsResponse>(content);
+                var shuffledResponse = JsonConvert.DeserializeObject<ShuffledDeckResponse>(content);
 
                 using (var s3Client = new AmazonS3Client(Amazon.RegionEndpoint.APSoutheast2))
                 {
@@ -38,16 +40,82 @@ namespace RedBlack
                 }
             }
 
-            var outboundRequest = new OutboundRequest
+            var message = "Alright the deck's shuffled.";
+            Messenger.SendMessage(playerId, message).Wait();
+
+            message = "Red or Black?";
+            Messenger.SendMessage(playerId, message).Wait();
+        }
+
+        public async Task TakeTurn(string playerId, string assumption)
+        {
+            var currentGame = await RetrieveGame(playerId);
+            var endpoint = $"{currentGame.deckId}/draw/?count=1";
+
+            using (var client = new HttpClient())
             {
-                recipient = new Recipient { id = playerId },
-                message = new OutboundMessage { text = "Alright the deck's shuffled." }
+                var response = await client.GetAsync($"{_baseUrl}/{endpoint}");
+                var content = await response.Content.ReadAsStringAsync();
+                var drawCardResponse = JsonConvert.DeserializeObject<DrawCardResponse>(content);
+
+                var card = drawCardResponse.cards.First();
+                var cardString = $"{card.value} of {card.suit.ToLower()}";
+
+                Messenger.SendMessage(playerId, cardString).Wait();
+                
+                if (assumption.ToLower() == "red" &&
+                    (card.suit.ToLower() == "diamonds" || card.suit.ToLower() == "hearts"))
+                {
+                    var message = $"Nice one. \nScore: {++currentGame.score}";
+                    Messenger.SendMessage(playerId, message).Wait();
+                }
+                else if (assumption.ToLower() == "black" &&
+                         (card.suit.ToLower() == "spades" || card.suit.ToLower() == "clubs"))
+                {
+                    var message = $"Nice one. \nScore: {++currentGame.score}";
+                    Messenger.SendMessage(playerId, message).Wait();
+                }
+                else
+                {
+                    var message = $"Nope. \nScore: {currentGame.score}";
+                    Messenger.SendMessage(playerId, message).Wait();
+                }
+
+
+                using (var s3Client = new AmazonS3Client(Amazon.RegionEndpoint.APSoutheast2))
+                {
+                    var putObjectRequest = new PutObjectRequest
+                    {
+                        BucketName = Environment.GetEnvironmentVariable("playerS3BucketName"),
+                        Key = $"{currentGame.playerId}.json",
+                        ContentBody = JsonConvert.SerializeObject(currentGame)
+                    };
+
+                    await s3Client.PutObjectAsync(putObjectRequest);
+                }
+            }
+
+            Messenger.SendMessage(playerId, "Red or Black?").Wait();
+        }
+
+        private async Task<Game> RetrieveGame(string playerId)
+        {
+            var getObjectRequest = new GetObjectRequest
+            {
+                BucketName = Environment.GetEnvironmentVariable("playerS3BucketName"),
+                Key = $"{playerId}.json"
             };
 
-            Messenger.SendMessage(outboundRequest).Wait();
+            using (var s3Client = new AmazonS3Client(Amazon.RegionEndpoint.APSoutheast2))
+            {
+                var response = await s3Client.GetObjectAsync(getObjectRequest);
 
-            outboundRequest.message.text = "Red or Black?";
-            Messenger.SendMessage(outboundRequest).Wait();
+                using (var streamReader = new StreamReader(response.ResponseStream))
+                {
+                    var content = streamReader.ReadToEnd();
+                    return JsonConvert.DeserializeObject<Game>(content);
+                }
+            }
         }
     }
 }
