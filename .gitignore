@@ -1,0 +1,5 @@
+.vs/
+RedBlack/bin/
+RedBlack/obj/
+**.user
+**.lock.json
