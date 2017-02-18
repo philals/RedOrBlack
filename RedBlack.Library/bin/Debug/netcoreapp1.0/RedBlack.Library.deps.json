@@ -1,0 +1,97 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v1.0",
+    "signature": "849e6d934bfb89388aeb6a4c72e6b29e8758b3c6"
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v1.0": {
+      "RedBlack.Library/1.0.0": {
+        "dependencies": {
+          "Amazon.Lambda.Core": "1.0.0",
+          "AWSSDK.S3": "3.3.5.5",
+          "Newtonsoft.Json": "9.0.1"
+        },
+        "runtime": {
+          "RedBlack.Library.dll": {}
+        }
+      },
+      "Amazon.Lambda.Core/1.0.0": {
+        "runtime": {
+          "lib/netstandard1.3/Amazon.Lambda.Core.dll": {}
+        }
+      },
+      "AWSSDK.Core/3.3.8": {
+        "dependencies": {
+          "System.Collections.NonGeneric": "4.0.1"
+        },
+        "runtime": {
+          "lib/netstandard1.3/AWSSDK.Core.dll": {}
+        }
+      },
+      "AWSSDK.S3/3.3.5.5": {
+        "dependencies": {
+          "AWSSDK.Core": "3.3.8"
+        },
+        "runtime": {
+          "lib/netstandard1.3/AWSSDK.S3.dll": {}
+        }
+      },
+      "Newtonsoft.Json/9.0.1": {
+        "dependencies": {
+          "System.Runtime.Serialization.Primitives": "4.1.1"
+        },
+        "runtime": {
+          "lib/netstandard1.0/Newtonsoft.Json.dll": {}
+        }
+      },
+      "System.Collections.NonGeneric/4.0.1": {
+        "runtime": {
+          "lib/netstandard1.3/System.Collections.NonGeneric.dll": {}
+        }
+      },
+      "System.Runtime.Serialization.Primitives/4.1.1": {
+        "runtime": {
+          "lib/netstandard1.3/System.Runtime.Serialization.Primitives.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "RedBlack.Library/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Amazon.Lambda.Core/1.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-+pBYGHaOaDAhu2j8BA5MhKLwxZM7lgmTSroGyCzEqWMBx+uc+QtpED2ShCAkKjKeedXH+LvJpQAUkEtW7rfcgQ=="
+    },
+    "AWSSDK.Core/3.3.8": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-sDEABDAYvdjkXk9bNHzMbxmN+ubpr8YhaKlZgAhNs5N8dptVKaFTvPq9dK3/bDHxDGYJGSJcNFJ9FobUh/tsWg=="
+    },
+    "AWSSDK.S3/3.3.5.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-9QyEyZKL/8iEN6CgwfQorMbgSM0I3MZWDiFy2MrWi5lmmDb5UyjtuiL2bFRGNTyhZpskD5tRVD7F90qFiGXv8w=="
+    },
+    "Newtonsoft.Json/9.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-U82mHQSKaIk+lpSVCbWYKNavmNH1i5xrExDEquU1i6I5pV6UMOqRnJRSlKO3cMPfcpp0RgDY+8jUXHdQ4IfXvw=="
+    },
+    "System.Collections.NonGeneric/4.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-hMxFT2RhhlffyCdKLDXjx8WEC5JfCvNozAZxCablAuFRH74SCV4AgzE8yJCh/73bFnEoZgJ9MJmkjQ0dJmnKqA=="
+    },
+    "System.Runtime.Serialization.Primitives/4.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-HZ6Du5QrTG8MNJbf4e4qMO3JRAkIboGT5Fk804uZtg3Gq516S7hAqTm2UZKUHa7/6HUGdVy3AqMQKbns06G/cg=="
+    }
+  }
+}

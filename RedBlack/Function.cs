@@ -1,6 +1,7 @@
 using System;
 using Amazon.Lambda.Core;
-using RedBlack.DataContracts;
+using RedBlack.Library.DataContracts;
+using RedBlack.Library;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializerAttribute(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -28,24 +29,27 @@ namespace RedBlack
                     var messageText = message.message.text;
 
                     HandleIncomingMessage(senderId, messageText);
-                    
                 }
             }
 
             return "";
         }
 
-        private void HandleIncomingMessage(string recipientId, string messageText)
+        private static void HandleIncomingMessage(string recipientId, string messageText)
         {
             var text = messageText.ToLower();
+
             var dealer = new Dealer();
             if (text.StartsWith("start game"))
             {
                 dealer.StartGame(recipientId).Wait();
+                return;
             }
-            else if (text.StartsWith("red") || text.StartsWith("black"))
+
+            var assumption = new Assumption(text);
+            if (assumption.IsValid)
             {
-                dealer.TakeTurn(recipientId, text).Wait();
+                dealer.TakeTurn(recipientId, assumption).Wait();
             }
             else
             {

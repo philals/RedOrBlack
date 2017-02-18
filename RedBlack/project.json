@@ -15,7 +15,8 @@
       "version": "1.1.0-preview1"
     },
     "Newtonsoft.Json": "9.0.1",
-    "AWSSDK.S3": "3.3.5.3"
+    "AWSSDK.S3": "3.3.5.5",
+    "RedBlack.Library": "1.0.0-*"
   },
 
   "tools": {
