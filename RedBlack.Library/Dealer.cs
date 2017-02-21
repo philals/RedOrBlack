@@ -43,6 +43,11 @@ namespace RedBlack.Library
         {
             var currentGame = FindGame(playerId);
 
+            if (currentGame == null)
+            {
+                Messenger.SendMessage(playerId, "You don't currently have a game running. Say 'start game' to start a new game").Wait();
+            }
+
             var drawCardResponse = await DrawCard(currentGame);
 
             if (!string.IsNullOrEmpty(drawCardResponse.error))

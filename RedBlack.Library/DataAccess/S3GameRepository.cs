@@ -29,7 +29,7 @@ namespace RedBlack.Library.DataAccess
                     response = await s3Client.PutObjectAsync(putObjectRequest);
                 }).Wait();
 
-                return response.HttpStatusCode == HttpStatusCode.OK;
+                return (response?.HttpStatusCode ?? HttpStatusCode.InternalServerError) == HttpStatusCode.OK;
             }
         }
 

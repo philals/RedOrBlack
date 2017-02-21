@@ -3,6 +3,7 @@
 
   "dependencies": {
     "Amazon.Lambda.Core": "1.0.0",
+    "AWSSDK.DynamoDBv2": "3.3.2.1",
     "AWSSDK.S3": "3.3.5.5",
     "Microsoft.NETCore.App": {
       "type": "platform",

@@ -48,7 +48,7 @@ namespace RedBlack
         private static void Init()
         {
             var services = new ServiceCollection();
-            services.AddScoped<IGameRepository, S3GameRepository>();
+            services.AddScoped<IGameRepository, DynamoDBGameRepository>();
 
             _serviceProvider = services.BuildServiceProvider();
         }
