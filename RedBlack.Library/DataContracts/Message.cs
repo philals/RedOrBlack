@@ -5,5 +5,6 @@ namespace RedBlack.Library.DataContracts
         public string mid { get; set; }
         public string seq { get; set; }
         public string text { get; set; }
+        public Attachment attachment { get; set; }
     }
 }

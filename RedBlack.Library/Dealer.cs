@@ -1,18 +1,28 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
-using Amazon.S3;
-using Amazon.S3.Model;
 using Newtonsoft.Json;
+using RedBlack.Library.DataAccess;
 using RedBlack.Library.DataContracts;
 
 namespace RedBlack.Library
 {
-    public class Dealer
+    public interface IDealer
     {
+        Task StartGame(string playerId);
+        Task TakeTurn(string playerId, Assumption assumption);
+    }
+
+    public class Dealer : IDealer
+    {
+        private readonly IGameRepository _gameRepo;
+
+        public Dealer(IGameRepository gameRepo)
+        {
+            _gameRepo = gameRepo;
+        }
+
         private const string BaseUrl = "https://deckofcardsapi.com/api/deck";
 
         public async Task StartGame(string playerId)
@@ -20,7 +30,7 @@ namespace RedBlack.Library
             var shuffledResponse = await GetNewDeck();
 
             var gameData = new Game { playerId = playerId, deckId = shuffledResponse.deck_id, score = 0 };
-            SendGameDataToS3(gameData).Wait();
+            SaveGame(gameData);
 
             var message = "Alright the deck's shuffled.";
             Messenger.SendMessage(playerId, message).Wait();
@@ -31,7 +41,7 @@ namespace RedBlack.Library
 
         public async Task TakeTurn(string playerId, Assumption assumption)
         {
-            var currentGame = await RetrieveGameFromS3(playerId);
+            var currentGame = FindGame(playerId);
 
             var drawCardResponse = await DrawCard(currentGame);
 
@@ -54,7 +64,7 @@ namespace RedBlack.Library
 
             currentGame = CheckAssumption(assumption, currentGame, drawCardResponse);
 
-            await SendGameDataToS3(currentGame);
+            SaveGame(currentGame);
 
             if (drawCardResponse.remaining == 0)
             {
@@ -66,7 +76,7 @@ namespace RedBlack.Library
             }
         }
 
-        private async void EndGame(Game currentGame)
+        private static async void EndGame(Game currentGame)
         {
             await Messenger.SendMessage(currentGame.playerId, $"Final score: {currentGame.score}");
         }
@@ -116,50 +126,25 @@ namespace RedBlack.Library
             if (assumption.IsCorrect(card))
             {
                 currentGame.score += assumption.Worth;
-                message = $"Nice one. \nYour score is {currentGame.score} with {drawCardResponse.remaining} cards left.";
+                message = $"Nice one. \nYour score is {currentGame.score} with {drawCardResponse.remaining} cards remaining.";
             }
             else
             {
-                message = $"Nope. \nYour score is {currentGame.score} with {drawCardResponse.remaining} cards left.";
+                message = $"Nope. \nYour score is {currentGame.score} with {drawCardResponse.remaining} cards remaining.";
             }
             Messenger.SendMessage(currentGame.playerId, message).Wait();
 
             return currentGame;
         }
 
-        private async Task<Game> RetrieveGameFromS3(string playerId)
+        private Game FindGame(string playerId)
         {
-            var getObjectRequest = new GetObjectRequest
-            {
-                BucketName = Environment.GetEnvironmentVariable("playerS3BucketName"),
-                Key = $"{playerId}.json"
-            };
-
-            using (var s3Client = new AmazonS3Client(Amazon.RegionEndpoint.APSoutheast2))
-            {
-                var response = await s3Client.GetObjectAsync(getObjectRequest);
-
-                using (var streamReader = new StreamReader(response.ResponseStream))
-                {
-                    var content = streamReader.ReadToEnd();
-                    return JsonConvert.DeserializeObject<Game>(content);
-                }
-            }
+            return _gameRepo.FindGame(playerId);
         }
 
-        private static async Task SendGameDataToS3(Game gameData)
+        private void SaveGame(Game gameData)
         {
-            using (var s3Client = new AmazonS3Client(Amazon.RegionEndpoint.APSoutheast2))
-            {
-                var putObjectRequest = new PutObjectRequest
-                {
-                    BucketName = Environment.GetEnvironmentVariable("playerS3BucketName"),
-                    Key = $"{gameData.playerId}.json",
-                    ContentBody = JsonConvert.SerializeObject(gameData)
-                };
-
-                await s3Client.PutObjectAsync(putObjectRequest);
-            }
+            _gameRepo.SaveGame(gameData);
         }
     }
 }
