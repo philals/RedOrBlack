@@ -9,7 +9,7 @@ namespace RedBlack.Library
 {
     public class Messenger
     {
-        public static async Task SendImage(string recipientId, string imageUrl)
+        public static void SendImage(string recipientId, string imageUrl)
         {
             var outboundRequest = new OutboundRequest
             {
@@ -20,10 +20,10 @@ namespace RedBlack.Library
                 }
             };
 
-            await Send(outboundRequest);
+            Send(outboundRequest);
         }
 
-        public static async Task SendMessage(string recipientId, string messageText)
+        public static void SendMessage(string recipientId, string messageText)
         {
             var outboundRequest = new OutboundRequest
             {
@@ -31,10 +31,10 @@ namespace RedBlack.Library
                 message = new OutboundMessage {text = messageText}
             };
 
-            await Send(outboundRequest);
+            Send(outboundRequest);
         }
 
-        private static async Task Send(OutboundRequest outboundRequest)
+        private static void Send(OutboundRequest outboundRequest)
         {
             using (var client = new HttpClient())
             {
@@ -49,13 +49,13 @@ namespace RedBlack.Library
 
                 try
                 {
-                    var response = await client.PostAsync(url, content);
+                    var response = client.PostAsync(url, content).Result;
 
                     Console.WriteLine("Status: " + response.StatusCode);
 
                     if (response.Content != null)
                     {
-                        var responseString = await response.Content.ReadAsStringAsync();
+                        var responseString = response.Content.ReadAsStringAsync().Result;
                         Console.WriteLine(responseString);
                     }
                 }

@@ -10,8 +10,8 @@ namespace RedBlack.Library
 {
     public interface IDealer
     {
-        Task StartGame(string playerId);
-        Task TakeTurn(string playerId, Assumption assumption);
+        void StartGame(string playerId);
+        ITurnOutcome TakeTurn(string playerId, Assumption assumption);
     }
 
     public class Dealer : IDealer
@@ -25,65 +25,57 @@ namespace RedBlack.Library
 
         private const string BaseUrl = "https://deckofcardsapi.com/api/deck";
 
-        public async Task StartGame(string playerId)
+        public void StartGame(string playerId)
         {
-            var shuffledResponse = await GetNewDeck();
+            var shuffledResponse = GetNewDeck().Result;
 
             var gameData = new Game { playerId = playerId, deckId = shuffledResponse.deck_id, score = 0 };
             SaveGame(gameData);
-
-            var message = "Alright the deck's shuffled.";
-            Messenger.SendMessage(playerId, message).Wait();
-
-            message = "Take a guess";
-            Messenger.SendMessage(playerId, message).Wait();
         }
 
-        public async Task TakeTurn(string playerId, Assumption assumption)
+        public ITurnOutcome TakeTurn(string playerId, Assumption assumption)
         {
             var currentGame = FindGame(playerId);
 
             if (currentGame == null)
             {
-                Messenger.SendMessage(playerId, "You don't currently have a game running. Say 'start game' to start a new game").Wait();
+                return new TurnErrorOutcome
+                {
+                    ErrorReason = "You don't currently have a game running. You need to start a new game"
+                };
             }
 
-            var drawCardResponse = await DrawCard(currentGame);
+            var drawCardResponse = DrawCard(currentGame).Result;
 
             if (!string.IsNullOrEmpty(drawCardResponse.error))
             {
                 if (drawCardResponse.error.Contains("Not enough cards remaining to draw"))
                 {
-                    Messenger.SendMessage(playerId, "There's no cards left. Say 'start game' to start a new game.").Wait();
-                    return;
+                    return new TurnErrorOutcome
+                    {
+                        ErrorReason = "There's no cards left. You need to start a new game."
+                    };
                 }
                 else
                 {
                     LambdaLogger.Log(drawCardResponse.error);
-                    Messenger.SendMessage(playerId, "Huh, something went wrong").Wait();
-                    return;
+                    return new TurnErrorOutcome
+                    {
+                        ErrorReason = "Huh, something went wrong"
+                    };
                 }
             }
 
-            SendCardToPlayer(playerId, drawCardResponse);
+            var assumptionResult = CheckAssumption(assumption, currentGame, drawCardResponse);
 
-            currentGame = CheckAssumption(assumption, currentGame, drawCardResponse);
+            SaveGame(assumptionResult.GameState);
 
-            SaveGame(currentGame);
-
-            if (drawCardResponse.remaining == 0)
+            return new TurnSuccessOutcome
             {
-                EndGame(currentGame);
-            }
-            else
-            {
-                Messenger.SendMessage(playerId, "Take a guess").Wait();
-            }
-        }
-
-        private static async void EndGame(Game currentGame)
-        {
-            await Messenger.SendMessage(currentGame.playerId, $"Final score: {currentGame.score}");
+                AssumptionResult = assumptionResult, 
+                DrawnCard = drawCardResponse.cards.First(),
+                RemainingCardCount = drawCardResponse.remaining
+            };
         }
 
         private async Task<ShuffledDeckResponse> GetNewDeck()
@@ -116,30 +108,24 @@ namespace RedBlack.Library
             return drawCardResponse;
         }
 
-        private static void SendCardToPlayer(string playerId, DrawCardResponse drawCardResponse)
-        {
-            var card = drawCardResponse.cards.First();
-            Messenger.SendMessage(playerId, $"{card.value} of {card.suit.ToLower()}").Wait();
-            //Messenger.SendImage(playerId, card.image).Wait();
-        }
+        
 
-        private static Game CheckAssumption(Assumption assumption, Game currentGame, DrawCardResponse drawCardResponse)
+        private static AssumptionResult CheckAssumption(Assumption assumption, Game currentGame, DrawCardResponse drawCardResponse)
         {
             var card = drawCardResponse.cards.First();
 
-            string message;
-            if (assumption.IsCorrect(card))
+            var result = new AssumptionResult
             {
-                currentGame.score += assumption.Worth;
-                message = $"Nice one. \nYour score is {currentGame.score} with {drawCardResponse.remaining} cards remaining.";
-            }
-            else
-            {
-                message = $"Nope. \nYour score is {currentGame.score} with {drawCardResponse.remaining} cards remaining.";
-            }
-            Messenger.SendMessage(currentGame.playerId, message).Wait();
+                Success = assumption.IsCorrect(card),
+                GameState = currentGame
+            };
 
-            return currentGame;
+            if (result.Success)
+            {
+                result.GameState.score += assumption.Worth;
+            }
+
+            return result;
         }
 
         private Game FindGame(string playerId)
