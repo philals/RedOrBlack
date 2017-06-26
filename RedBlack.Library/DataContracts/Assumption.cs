@@ -25,6 +25,11 @@ namespace RedBlack.Library.DataContracts
             CalculateWorth();
         }
 
+        public Assumption(string colour, string number, string suit)
+            : this($"{colour} {number} {suit}")
+        {
+        }
+
         public bool IsValid { get; set; } = true;
 
         public int Worth { get; set; }
@@ -40,7 +45,7 @@ namespace RedBlack.Library.DataContracts
 
         protected List<string> Colours => new List<string> {"red", "black"};
         protected List<string> Suits => new List<string> {"hearts", "diamonds", "spades", "clubs"};
-        protected List<string> Numbers => new List<string> {"ace", "2", "two", "3", "three", "4", "four", "5", "five", "6", "six", "7","seven", "8", "eight", "9", "nine", "10", "ten", "jack", "queen", "king" };
+        protected List<string> Numbers => new List<string> {"1", "one", "ace", "2", "two", "3", "three", "4", "four", "5", "five", "6", "six", "7","seven", "8", "eight", "9", "nine", "10", "ten", "jack", "queen", "king" };
 
         private void BuildAssumption(string text)
         {
@@ -53,7 +58,7 @@ namespace RedBlack.Library.DataContracts
         {
             var number = card.value.ToLower();
             var suit = card.suit.ToLower();
-            var colour = (suit == "hearts" || suit == "diamonds") ? "red" : "black";
+            var colour = (suit == "heart" || suit == "hearts" || suit == "diamond" || suit == "diamonds") ? "red" : "black";
 
             if (HasNumber && !string.Equals(Number, number, StringComparison.CurrentCultureIgnoreCase))
             {

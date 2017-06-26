@@ -8,6 +8,7 @@ namespace RedBlack.Library.DataContracts
         public string playerId { get; set; }
         public string deckId { get; set; }
         public int score { get; set; }
+        public int cardsRemainingCount { get; set; }
     }
 
     public static class GameExtensions
@@ -18,7 +19,8 @@ namespace RedBlack.Library.DataContracts
             {
                 { "PlayerId", new AttributeValue {S = game.playerId} },
                 { "DeckId", new AttributeValue {S = game.deckId} },
-                { "Score", new AttributeValue {N = game.score.ToString()} }
+                { "Score", new AttributeValue {N = game.score.ToString()} },
+                { "CardsRemainingCount", new AttributeValue {N = game.cardsRemainingCount.ToString()} }
             };
         }
     }

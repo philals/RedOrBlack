@@ -58,7 +58,8 @@ namespace RedBlack.Library.DataAccess
                     {
                         playerId = response.Item["PlayerId"].S,
                         deckId = response.Item["DeckId"].S,
-                        score = int.Parse(response.Item["Score"].N)
+                        score = int.Parse(response.Item["Score"].N),
+                        cardsRemainingCount = int.Parse(response.Item["CardsRemainingCount"].N)
                     };
 
                     return gameData;

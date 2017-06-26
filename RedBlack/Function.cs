@@ -91,16 +91,16 @@ namespace RedBlack
                     var game = successOutcome.AssumptionResult.GameState;
                     if (successOutcome.AssumptionResult.Success)
                     {
-                        message = $"Nice one. \nYour score is {game.score} with {successOutcome.RemainingCardCount} cards remaining.";
+                        message = $"Nice one. \nYour score is {game.score} with {successOutcome.AssumptionResult.GameState.cardsRemainingCount} cards remaining.";
                     }
                     else
                     {
-                        message = $"Nope. \nYour score is {game.score} with {successOutcome.RemainingCardCount} cards remaining.";
+                        message = $"Nope. \nYour score is {game.score} with {successOutcome.AssumptionResult.GameState.cardsRemainingCount} cards remaining.";
                     }
 
                     Messenger.SendMessage(recipientId, message);
 
-                    if (successOutcome.RemainingCardCount == 0)
+                    if (successOutcome.AssumptionResult.GameState.cardsRemainingCount == 0)
                     {
                         Messenger.SendMessage(recipientId, $"No more cards in the deck.\nFinal score: {game.score}");
                     }

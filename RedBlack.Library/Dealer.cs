@@ -12,6 +12,7 @@ namespace RedBlack.Library
     {
         void StartGame(string playerId);
         ITurnOutcome TakeTurn(string playerId, Assumption assumption);
+        Game FindGame(string playerId);
     }
 
     public class Dealer : IDealer
@@ -29,7 +30,7 @@ namespace RedBlack.Library
         {
             var shuffledResponse = GetNewDeck().Result;
 
-            var gameData = new Game { playerId = playerId, deckId = shuffledResponse.deck_id, score = 0 };
+            var gameData = new Game { playerId = playerId, deckId = shuffledResponse.deck_id, score = 0, cardsRemainingCount = shuffledResponse.remaining};
             SaveGame(gameData);
         }
 
@@ -66,6 +67,8 @@ namespace RedBlack.Library
                 }
             }
 
+            currentGame.cardsRemainingCount = drawCardResponse.remaining;
+
             var assumptionResult = CheckAssumption(assumption, currentGame, drawCardResponse);
 
             SaveGame(assumptionResult.GameState);
@@ -73,8 +76,7 @@ namespace RedBlack.Library
             return new TurnSuccessOutcome
             {
                 AssumptionResult = assumptionResult, 
-                DrawnCard = drawCardResponse.cards.First(),
-                RemainingCardCount = drawCardResponse.remaining
+                DrawnCard = drawCardResponse.cards.First()
             };
         }
 
@@ -105,6 +107,7 @@ namespace RedBlack.Library
 
             var content = await response.Content.ReadAsStringAsync();
             var drawCardResponse = JsonConvert.DeserializeObject<DrawCardResponse>(content);
+
             return drawCardResponse;
         }
 
@@ -128,7 +131,7 @@ namespace RedBlack.Library
             return result;
         }
 
-        private Game FindGame(string playerId)
+        public Game FindGame(string playerId)
         {
             return _gameRepo.FindGame(playerId);
         }

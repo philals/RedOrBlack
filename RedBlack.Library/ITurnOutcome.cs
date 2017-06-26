@@ -16,7 +16,5 @@ namespace RedBlack.Library
         public Card DrawnCard { get; set; }
 
         public AssumptionResult AssumptionResult { get; set; }
-
-        public int RemainingCardCount { get; set; }
     }
 }
