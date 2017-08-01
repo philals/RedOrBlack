@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Amazon.Lambda.Core;
 using Newtonsoft.Json;
 using RedBlack.Library.DataContracts;
@@ -60,19 +61,69 @@ namespace RedBlack
             var dealer = new Dealer(_serviceProvider.GetService<IGameRepository>());
             if (text.StartsWith("start game"))
             {
-                dealer.StartGame(recipientId).Wait();
+                dealer.StartGame(recipientId);
+
+                var message = "Alright the deck's shuffled.";
+                Messenger.SendMessage(recipientId, message);
+
+                message = "Take a guess";
+                Messenger.SendMessage(recipientId, message);
                 return;
             }
 
             var assumption = new Assumption(text);
             if (assumption.IsValid)
             {
-                dealer.TakeTurn(recipientId, assumption).Wait();
+                var outcome = dealer.TakeTurn(recipientId, assumption);
+
+                if (outcome is TurnErrorOutcome)
+                {
+                    var errorOutcome = outcome as TurnErrorOutcome;
+                    Messenger.SendMessage(recipientId, errorOutcome.ErrorReason);
+                }
+                else if (outcome is TurnSuccessOutcome)
+                {
+                    var successOutcome = outcome as TurnSuccessOutcome;
+                    SendCardToPlayer(recipientId, successOutcome.DrawnCard);
+
+                    string message;
+
+                    var game = successOutcome.AssumptionResult.GameState;
+                    if (successOutcome.AssumptionResult.Success)
+                    {
+                        message = $"Nice one. \nYour score is {game.score} with {successOutcome.AssumptionResult.GameState.cardsRemainingCount} cards remaining.";
+                    }
+                    else
+                    {
+                        message = $"Nope. \nYour score is {game.score} with {successOutcome.AssumptionResult.GameState.cardsRemainingCount} cards remaining.";
+                    }
+
+                    Messenger.SendMessage(recipientId, message);
+
+                    if (successOutcome.AssumptionResult.GameState.cardsRemainingCount == 0)
+                    {
+                        Messenger.SendMessage(recipientId, $"No more cards in the deck.\nFinal score: {game.score}");
+                    }
+                    else
+                    {
+                        Messenger.SendMessage(recipientId, "Take a guess");
+                    }
+                }
+                else
+                {
+                    Messenger.SendMessage(recipientId, "Hmm something went wrong");
+                }
             }
             else
             {
-                Messenger.SendMessage(recipientId, "Huh? I'm just here to deal the cards").Wait();
+                Messenger.SendMessage(recipientId, "Huh? I'm just here to deal the cards");
             }
+        }
+
+        private static void SendCardToPlayer(string playerId, Card card)
+        {
+            Messenger.SendMessage(playerId, $"{card.value} of {card.suit.ToLower()}");
+            //Messenger.SendImage(playerId, card.image).Wait();
         }
     }
 }
