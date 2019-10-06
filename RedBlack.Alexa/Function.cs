@@ -52,7 +52,7 @@ namespace RedBlack.Alexa
                 {
                     innerResponse = new PlainTextOutputSpeech
                     {
-                        Text = $"Welcome back to Red or Black. Your current game has {currentGame.cardsRemainingCount} cards remaining with a score of {currentGame.score}. You can either continue this game by making a guess, or ask me to start a new game"
+                        Text = $"Welcome back to Red or Black. Your current game has {currentGame.cardsRemainingCount} cards remaining with a score of {currentGame.score}. You can either continue this game by making a guess, or ask me to start a new game."
                     };
                 }
                 else
